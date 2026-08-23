@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Shield, MessageCircle, Zap, ArrowRight, Phone, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Shield, MessageCircle, Zap, ArrowRight, Mail, Lock, User, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -85,7 +85,7 @@ export default function Landing() {
             Приватные сообщения,<br /><span className="text-primary">на ваших условиях.</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
-            Whisper — безопасный мессенджер со сквозным шифрованием. Без слежки, без рекламы. Голосовые сообщения, звонки, общение.
+            Whisper — безопасный мессенджер со сквозным шифрованием. Без слежки, без рекламы. Групповые чаты, голосовые, общение.
           </p>
           <div className="mt-10 flex items-center justify-center gap-4">
             <button onClick={() => openAuth("signup")} disabled={isLoading} className="group inline-flex items-center gap-2.5 px-8 py-3.5 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:opacity-90 transition-all">
@@ -97,7 +97,7 @@ export default function Landing() {
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl w-full px-6">
           <Feature icon={<Shield className="w-5 h-5" />} title="Сквозное шифрование" description="Каждое сообщение зашифровано AES-256-GCM. Только вы и ваши контакты можете их прочитать." />
-          <Feature icon={<Phone className="w-5 h-5" />} title="Звонки и голосовые" description="Голосовые и видеозвонки, голосовые сообщения. Общайтесь так, как удобно." />
+          <Feature icon={<MessageCircle className="w-5 h-5" />} title="Групповые чаты" description="Общайтесь в группах, пересылайте и редактируйте сообщения. Полный контроль над диалогом." />
           <Feature icon={<Zap className="w-5 h-5" />} title="Мгновенная доставка" description="Сообщения приходят в реальном времени. Индикаторы набора, статус прочтения, онлайн-статус." />
         </motion.div>
       </main>

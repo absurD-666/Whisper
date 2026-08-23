@@ -275,17 +275,22 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
   const conversations = useQuery(api.conversations.list);
 
   useEffect(() => { if (conversationId) markRead({ conversationId: conversationId as any }).catch(() => {}); }, [conversationId, markRead]);
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => {
+    if (!messages) return;
+    // Scroll immediately, then again after DOM paints
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+    requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); });
+  }, [messages]);
   useEffect(() => { const el = textareaRef.current; if (!el) return; el.style.height = "auto"; el.style.height = Math.min(el.scrollHeight, 100) + "px"; }, [input]);
 
   const handleTyping = useCallback(() => { setTypingMutation({ conversationId: conversationId as any }).catch(() => {}); if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); typingTimeoutRef.current = setTimeout(() => { clearTypingMutation().catch(() => {}); }, 3000); }, [conversationId, setTypingMutation, clearTypingMutation]);
 
-  const handleSend = async () => { const text = input.trim(); if (!text) return; try { await sendMessage({ conversationId: conversationId as any, body: text, type: "text" }); setInput(""); clearTypingMutation().catch(() => {}); textareaRef.current?.focus(); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} };
+  const handleSend = async () => { const text = input.trim(); if (!text) return; try { await sendMessage({ conversationId: conversationId as any, body: text, type: "text" }); setInput(""); clearTypingMutation().catch(() => {}); textareaRef.current?.focus(); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} };
   const handleEdit = async () => { if (!editingMsgId || !editingMsgBody.trim()) return; await editMessageMutation({ messageId: editingMsgId as any, body: editingMsgBody.trim() }).catch(() => {}); setEditingMsgId(null); setEditingMsgBody(""); };
   const handleForward = async (toConvoId: string) => { if (!showForwardId) return; await forwardMessageMutation({ messageId: showForwardId as any, toConversationId: toConvoId as any }).catch(() => {}); setShowForwardId(null); };
   const handlePin = async (messageId: string) => { await pinMessageMutation({ conversationId: conversationId as any, messageId: messageId as any }).catch(() => {}); setActiveMenuId(null); };
-  const handleSendVoice = async (blob: Blob, duration: number) => { try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": blob.type }, body: blob }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "voice", file: { type: "audio", storageId, name: "voice.webm" }, duration }); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} };
-  const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploadingImg(true); try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "image", file: { type: "image", storageId, name: file.name } }); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} finally { setUploadingImg(false); if (imageInputRef.current) imageInputRef.current.value = ""; } };
+  const handleSendVoice = async (blob: Blob, duration: number) => { try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": blob.type }, body: blob }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "voice", file: { type: "audio", storageId, name: "voice.webm" }, duration }); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} };
+  const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploadingImg(true); try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "image", file: { type: "image", storageId, name: file.name } }); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} finally { setUploadingImg(false); if (imageInputRef.current) imageInputRef.current.value = ""; } };
   const handleDeleteMessage = async (messageId: string, forEveryone: boolean) => { try { await deleteMessageMutation({ messageId: messageId as any, forEveryone }); setDeleteConfirmId(null); setActiveMenuId(null); setContextMenuMsgId(null); } catch {} };
   const handleBulkDelete = async (forEveryone: boolean) => { for (const id of bulkDeleteIds) { await deleteMessageMutation({ messageId: id as any, forEveryone }).catch(() => {}); } setBulkDeleteOpen(false); setBulkDeleteIds([]); };
   const handleContextMenu = (e: React.MouseEvent, msgId: string) => { e.preventDefault(); setContextMenuPos({ x: e.clientX, y: e.clientY }); setContextMenuMsgId(msgId); };
@@ -457,9 +462,17 @@ export default function Messenger() {
   useEffect(() => { const iv = setInterval(() => { heartbeatMutation().catch(() => {}); }, 30_000); heartbeatMutation().catch(() => {}); return () => clearInterval(iv); }, [heartbeatMutation]);
 
   // Sound for new messages
-  const prevConvoMapRef = useRef<Map<string, number>>(new Map());
+  const prevConvoMapRef = useRef<Map<string, number> | null>(null);
   useEffect(() => {
     if (!conversations) return;
+    // First load: just initialize the map without playing sounds
+    if (prevConvoMapRef.current === null) {
+      prevConvoMapRef.current = new Map();
+      for (const c of conversations) {
+        if (c.lastMessageAt) prevConvoMapRef.current.set(c._id, c.lastMessageAt);
+      }
+      return;
+    }
     for (const c of conversations) {
       if (!c.lastMessageAt) continue;
       const prev = prevConvoMapRef.current.get(c._id) ?? 0;
