@@ -307,13 +307,17 @@ export const deleteMessage = mutation({
         });
       }
     } else {
-      // Delete for self: mark with a special deleted body
-      await ctx.db.patch(args.messageId, {
-        body: "🗑 Сообщение удалено",
-        type: "text" as const,
-        file: undefined,
-        edited: false,
-      });
+      // Delete for self: remove the message entirely
+      await ctx.db.delete(args.messageId);
+      // Update conversation last message if needed
+      if (convo.lastMessageAt === msg.createdAt) {
+        await ctx.db.patch(msg.conversationId, {
+          lastMessage: "",
+          lastMessageAt: Date.now(),
+          lastMessageSender: userId,
+          lastMessageType: "text",
+        });
+      }
     }
     return { success: true };
   },

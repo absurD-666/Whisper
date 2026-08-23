@@ -41,38 +41,28 @@ function useTheme() {
   return { dark, toggle: () => setDark((d) => !d) };
 }
 
-// ─── Push Notifications ───
-async function requestNotifPermission(): Promise<boolean> {
-  if (!("Notification" in window)) return false;
-  if (Notification.permission === "granted") return true;
-  if (Notification.permission === "denied") return false;
-  const r = await Notification.requestPermission();
-  return r === "granted";
-}
-
-function showNotif(title: string, body: string) {
-  if (Notification.permission !== "granted") return;
-  try {
-    const n = new Notification(title, { body, icon: "/logo.svg", tag: "whisper-" + Date.now() });
-    n.onclick = () => { window.focus(); n.close(); };
-    setTimeout(() => n.close(), 6000);
-  } catch {}
-}
-
 // ─── Sound ───
 function playNotifSound() {
   try {
     const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.08);
-    gain.gain.setValueAtTime(0.15, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.2);
-    setTimeout(() => ctx.close(), 500);
+    // Soft two-tone chime
+    const notes = [
+      { freq: 698, start: 0, dur: 0.15 },     // F5
+      { freq: 880, start: 0.12, dur: 0.2 },   // A5
+    ];
+    for (const n of notes) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(n.freq, ctx.currentTime + n.start);
+      gain.gain.setValueAtTime(0, ctx.currentTime + n.start);
+      gain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + n.start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.start + n.dur);
+      osc.start(ctx.currentTime + n.start);
+      osc.stop(ctx.currentTime + n.start + n.dur);
+    }
+    setTimeout(() => ctx.close(), 600);
   } catch {}
 }
 
@@ -254,6 +244,10 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [contextMenuPos, setContextMenuPos] = useState<{ x: number; y: number } | null>(null);
   const [contextMenuMsgId, setContextMenuMsgId] = useState<string | null>(null);
+  const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteIds, setBulkDeleteIds] = useState<string[]>([]);
+  const [bulkDeleteForEveryone, setBulkDeleteForEveryone] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [deleteForEveryone, setDeleteForEveryone] = useState(false);
   const [uploadingImg, setUploadingImg] = useState(false);
@@ -286,19 +280,18 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
 
   const handleTyping = useCallback(() => { setTypingMutation({ conversationId: conversationId as any }).catch(() => {}); if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current); typingTimeoutRef.current = setTimeout(() => { clearTypingMutation().catch(() => {}); }, 3000); }, [conversationId, setTypingMutation, clearTypingMutation]);
 
-  const handleSend = async () => { const text = input.trim(); if (!text) return; try { await sendMessage({ conversationId: conversationId as any, body: text, type: "text" }); setInput(""); clearTypingMutation().catch(() => {}); textareaRef.current?.focus(); } catch {} };
+  const handleSend = async () => { const text = input.trim(); if (!text) return; try { await sendMessage({ conversationId: conversationId as any, body: text, type: "text" }); setInput(""); clearTypingMutation().catch(() => {}); textareaRef.current?.focus(); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} };
   const handleEdit = async () => { if (!editingMsgId || !editingMsgBody.trim()) return; await editMessageMutation({ messageId: editingMsgId as any, body: editingMsgBody.trim() }).catch(() => {}); setEditingMsgId(null); setEditingMsgBody(""); };
   const handleForward = async (toConvoId: string) => { if (!showForwardId) return; await forwardMessageMutation({ messageId: showForwardId as any, toConversationId: toConvoId as any }).catch(() => {}); setShowForwardId(null); };
   const handlePin = async (messageId: string) => { await pinMessageMutation({ conversationId: conversationId as any, messageId: messageId as any }).catch(() => {}); setActiveMenuId(null); };
-  const handleSendVoice = async (blob: Blob, duration: number) => { try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": blob.type }, body: blob }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "voice", file: { type: "audio", storageId, name: "voice.webm" }, duration }); } catch {} };
-  const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploadingImg(true); try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "image", file: { type: "image", storageId, name: file.name } }); } catch {} finally { setUploadingImg(false); if (imageInputRef.current) imageInputRef.current.value = ""; } };
+  const handleSendVoice = async (blob: Blob, duration: number) => { try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": blob.type }, body: blob }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "voice", file: { type: "audio", storageId, name: "voice.webm" }, duration }); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} };
+  const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploadingImg(true); try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "image", file: { type: "image", storageId, name: file.name } }); setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50); } catch {} finally { setUploadingImg(false); if (imageInputRef.current) imageInputRef.current.value = ""; } };
   const handleDeleteMessage = async (messageId: string, forEveryone: boolean) => { try { await deleteMessageMutation({ messageId: messageId as any, forEveryone }); setDeleteConfirmId(null); setActiveMenuId(null); setContextMenuMsgId(null); } catch {} };
+  const handleBulkDelete = async (forEveryone: boolean) => { for (const id of bulkDeleteIds) { await deleteMessageMutation({ messageId: id as any, forEveryone }).catch(() => {}); } setBulkDeleteOpen(false); setBulkDeleteIds([]); };
   const handleContextMenu = (e: React.MouseEvent, msgId: string) => { e.preventDefault(); setContextMenuPos({ x: e.clientX, y: e.clientY }); setContextMenuMsgId(msgId); };
+  const closeContextMenus = () => { setActiveMenuId(null); setContextMenuMsgId(null); setContextMenuPos(null); };
 
-  // Sound for new messages in open chat
-  const chatReadyRef = useRef(false);
-  const prevMsgCount = useRef(messages?.length ?? 0);
-  useEffect(() => { if (!messages) return; if (!chatReadyRef.current) { chatReadyRef.current = true; prevMsgCount.current = messages.length; return; } if (messages.length > prevMsgCount.current) { const lastMsg = messages[messages.length - 1]; if (lastMsg && lastMsg.senderId !== currentUserId) playNotifSound(); } prevMsgCount.current = messages.length; }, [messages, currentUserId]);
+
 
   if (!convo) return <div className="flex-1 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-primary/20 animate-pulse" /></div>;
 
@@ -310,7 +303,7 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
         <button onClick={onBack} className="md:hidden p-1 text-muted-foreground hover:text-foreground"><ArrowLeft className="w-5 h-5" /></button>
         {convo.isGroup ? (<div className="flex items-center gap-3 flex-1 min-w-0"><div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold flex items-center justify-center text-sm"><Users className="w-4 h-4" /></div><div><p className="text-sm font-semibold">{convo.name}</p><p className="text-[11px] text-muted-foreground">{convo.participants?.length} участников</p></div></div>) : convo.otherUser && (<><div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => convo.otherUser?._id && onViewProfile(convo.otherUser._id as string)}><Avatar nickname={convo.otherUser.nickname ?? "?"} online={convo.otherUser.online} size="sm" avatarStorageId={convo.otherUser.avatar} /><div><p className="text-sm font-semibold hover:underline">{convo.otherUser.nickname}</p><p className="text-[11px] text-muted-foreground">{convo.otherUser.online ? <span className="text-emerald-500">в сети</span> : "не в сети"}</p></div></div></>)}
       </header>
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      <div className="flex-1 overflow-y-auto px-4 py-6" onClick={(e) => { const el = e.target as HTMLElement; if (!el.closest('[data-menu]')) closeContextMenus(); }}>
         <div className="max-w-2xl mx-auto space-y-1.5">
           {messages && messages.length === 0 && <div className="text-center py-24"><div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4"><MessageCircle className="w-7 h-7 text-primary/40" /></div><p className="text-sm font-medium text-foreground/60">Начните диалог</p></div>}
           {messages?.map((msg) => {
@@ -319,15 +312,16 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
               <div key={msg._id} id={`msg-${msg._id}`} className={`group relative flex ${isMe ? "justify-end" : "justify-start"}`} onContextMenu={(e) => handleContextMenu(e, msg._id)}>
                 <div className={`absolute top-1 ${isMe ? "-left-8" : "-right-8"} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5`}><button onClick={() => { setActiveMenuId(activeMenuId === msg._id ? null : msg._id); }} className="p-1 text-muted-foreground hover:text-foreground rounded"><MoreHorizontal className="w-3.5 h-3.5" /></button></div>
                 {activeMenuId === msg._id && (
-                  <div className={`absolute top-8 ${isMe ? "right-0" : "left-0"} z-30 bg-popover border border-border rounded-xl shadow-lg py-1 w-44`}>
+                  <div data-menu className={`absolute top-8 ${isMe ? "right-0" : "left-0"} z-30 bg-popover border border-border rounded-xl shadow-lg py-1 w-44`}>
                     <button onClick={() => { setActiveMenuId(null); setEditingMsgId(msg._id); setEditingMsgBody(msg.body); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Edit3 className="w-3.5 h-3.5" />Редактировать</button>
                     <button onClick={() => { setActiveMenuId(null); setShowForwardId(msg._id); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Forward className="w-3.5 h-3.5" />Переслать</button>
                     <button onClick={() => { handlePin(msg._id); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Pin className="w-3.5 h-3.5" />{pinnedMsg?._id === msg._id ? "Открепить" : "Закрепить"}</button>
+                    <button onClick={() => { setActiveMenuId(null); setSelectedMsgIds(prev => { const next = new Set(prev); next.has(msg._id) ? next.delete(msg._id) : next.add(msg._id); return next; }); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Check className="w-3.5 h-3.5" />{selectedMsgIds.has(msg._id) ? "Снять выделение" : "Выделить"}</button>
                     <div className="border-t border-border/30 my-1" />
                     <button onClick={() => { setDeleteConfirmId(msg._id); setDeleteForEveryone(false); setActiveMenuId(null); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2 text-red-500"><Trash2 className="w-3.5 h-3.5" />Удалить</button>
                   </div>
                 )}
-                <div className={`max-w-[75%] px-3.5 py-2 rounded-2xl text-sm ${isMe ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted rounded-bl-md"}`}>
+                <div className={`max-w-[75%] px-3.5 py-2 rounded-2xl text-sm transition-all ${selectedMsgIds.has(msg._id) ? "ring-2 ring-primary/50 bg-primary/10" : ""} ${isMe ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted rounded-bl-md"}`} onClick={() => { if (selectedMsgIds.size > 0 || (selectedMsgIds.size === 0 && false)) { setSelectedMsgIds(prev => { const next = new Set(prev); next.has(msg._id) ? next.delete(msg._id) : next.add(msg._id); return next; }); } }}>
                   {msg.forwardedFrom && <p className="text-[10px] opacity-60 mb-1 flex items-center gap-1"><Forward className="w-3 h-3" />Переслано от {msg.forwardedFrom.senderName}</p>}
                   {msg.replyToId && <div className="text-[10px] opacity-50 mb-1 border-l-2 border-current/30 pl-2">Ответ</div>}
                   {msg.type === "image" && msg.file && <div className="mb-1 cursor-pointer" onClick={() => { /* handled below */ }}><ImageMessage storageId={msg.file.storageId} /></div>}
@@ -355,6 +349,18 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
         </div>
       </div>
 
+      {/* Right-click Context Menu */}
+      {contextMenuPos && contextMenuMsgId && (
+        <div data-menu style={{ position: "fixed", left: contextMenuPos.x, top: contextMenuPos.y, zIndex: 60 }} className="bg-popover border border-border rounded-xl shadow-lg py-1 w-44">
+          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setEditingMsgId(contextMenuMsgId); setEditingMsgBody(messages?.find(m => m._id === contextMenuMsgId)?.body ?? ""); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Edit3 className="w-3.5 h-3.5" />Редактировать</button>
+          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setShowForwardId(contextMenuMsgId); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Forward className="w-3.5 h-3.5" />Переслать</button>
+          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); pinMessageMutation({ conversationId: conversationId as any, messageId: contextMenuMsgId as any }).catch(() => {}); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Pin className="w-3.5 h-3.5" />{pinnedMsg?._id === contextMenuMsgId ? "Открепить" : "Закрепить"}</button>
+          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setSelectedMsgIds(prev => { const next = new Set(prev); next.has(contextMenuMsgId) ? next.delete(contextMenuMsgId) : next.add(contextMenuMsgId); return next; }); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Check className="w-3.5 h-3.5" />Выделить</button>
+          <div className="border-t border-border/30 my-1" />
+          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setDeleteConfirmId(contextMenuMsgId); setDeleteForEveryone(false); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2 text-red-500"><Trash2 className="w-3.5 h-3.5" />Удалить</button>
+        </div>
+      )}
+
       {/* Delete Message Confirm */}
       <AnimatePresence>
         {deleteConfirmId && (
@@ -368,10 +374,35 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
         )}
       </AnimatePresence>
 
+      {/* Bulk Delete Confirm */}
+      <AnimatePresence>
+        {bulkDeleteOpen && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center" onClick={() => setBulkDeleteOpen(false)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-card rounded-2xl p-5 w-72 border border-border/40" onClick={(e) => e.stopPropagation()}>
+              <p className="text-sm font-semibold mb-3">Удалить {bulkDeleteIds.length} {bulkDeleteIds.length === 1 ? "сообщение" : "сообщений"}?</p>
+              <label className="flex items-center gap-2 text-xs text-muted-foreground mb-4 cursor-pointer"><input type="checkbox" checked={bulkDeleteForEveryone} onChange={(e) => setBulkDeleteForEveryone(e.target.checked)} className="rounded" /><span>Удалить для всех</span></label>
+              <div className="flex gap-2"><Button variant="outline" className="flex-1" onClick={() => setBulkDeleteOpen(false)}>Отмена</Button><Button variant="destructive" className="flex-1" onClick={() => handleBulkDelete(bulkDeleteForEveryone)}>Удалить</Button></div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Forward Dialog */}
       <AnimatePresence>
         {showForwardId && conversations && <ForwardDialog messageId={showForwardId} conversations={conversations} onForward={handleForward} onClose={() => setShowForwardId(null)} />}
       </AnimatePresence>
+
+      {/* Selection Toolbar */}
+      {selectedMsgIds.size > 0 && (
+        <div className="border-t border-primary/20 bg-primary/5 px-4 py-2.5 shrink-0 flex items-center justify-between">
+          <span className="text-xs font-medium text-primary">Выбрано: {selectedMsgIds.size}</span>
+          <div className="flex gap-1.5">
+            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { const ids = [...selectedMsgIds]; if (ids.length === 1) { setShowForwardId(ids[0]); } setSelectedMsgIds(new Set()); }}>Переслать</Button>
+            <Button size="sm" variant="ghost" className="text-xs h-7 text-red-500" onClick={() => { const ids = [...selectedMsgIds]; if (ids.length === 1) { setDeleteConfirmId(ids[0]); setDeleteForEveryone(false); } else { setBulkDeleteIds(ids); setBulkDeleteOpen(true); } setSelectedMsgIds(new Set()); }}>Удалить</Button>
+            <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => setSelectedMsgIds(new Set())}>Отмена</Button>
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="border-t border-border/30 bg-card px-4 py-3 shrink-0">
@@ -425,7 +456,7 @@ export default function Messenger() {
   // Heartbeat
   useEffect(() => { const iv = setInterval(() => { heartbeatMutation().catch(() => {}); }, 30_000); heartbeatMutation().catch(() => {}); return () => clearInterval(iv); }, [heartbeatMutation]);
 
-  // Push notifications for ALL conversations
+  // Sound for new messages
   const prevConvoMapRef = useRef<Map<string, number>>(new Map());
   useEffect(() => {
     if (!conversations) return;
@@ -433,16 +464,11 @@ export default function Messenger() {
       if (!c.lastMessageAt) continue;
       const prev = prevConvoMapRef.current.get(c._id) ?? 0;
       if (c.lastMessageAt > prev && c.lastMessageSender !== currentUser?._id) {
-        const senderName = c.isGroup ? (c.name ?? "Группа") : (c.otherUser?.nickname ?? "Whisper");
-        showNotif(senderName, c.lastMessage ?? "Новое сообщение");
         playNotifSound();
       }
       prevConvoMapRef.current.set(c._id, c.lastMessageAt);
     }
   }, [conversations, currentUser]);
-
-  // Request notification permission on mount
-  useEffect(() => { requestNotifPermission(); }, []);
 
   const handleStartChat = async (userId: string) => {
     try { const { conversationId } = await createConversation({ otherUserId: userId as any }); setActiveChat(conversationId); setView("chat"); } catch {}
@@ -601,7 +627,7 @@ export default function Messenger() {
                         {c.isGroup ? <div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold flex items-center justify-center text-sm"><Users className="w-4 h-4" /></div> : <Avatar nickname={name} online={c.otherUser?.online} size="md" avatarStorageId={c.otherUser?.avatar} onClick={() => { if (c.otherUser?._id) setProfileUserId(c.otherUser._id as string); }} />}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between"><p className="text-sm font-medium truncate">{name}</p><span className="text-[10px] text-muted-foreground shrink-0">{formatTime(c.lastMessageAt)}</span></div>
-                          <p className="text-xs text-muted-foreground truncate">{c.lastMessage || "Нет сообщений"}</p>
+                          <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground truncate">{c.lastMessage || "Нет сообщений"}</p>{(c.unreadCount ?? 0) > 0 && <span className="shrink-0 ml-2 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">{c.unreadCount}</span>}</div>
                         </div>
                       </div>
                     );

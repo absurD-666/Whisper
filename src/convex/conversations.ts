@@ -22,6 +22,16 @@ export const list = query({
       !c.participants.some((p) => blocked.includes(p) && p !== userId)
     );
 
+    // Count unread messages per conversation
+    const myConvoIds = new Set(myConvos.map(c => c._id));
+    const allMessages = await ctx.db.query("messages").collect();
+    const unreadMap = new Map<string, number>();
+    for (const msg of allMessages) {
+      if (!msg.read && msg.senderId !== userId && myConvoIds.has(msg.conversationId)) {
+        unreadMap.set(msg.conversationId, (unreadMap.get(msg.conversationId) ?? 0) + 1);
+      }
+    }
+
     const enriched = await Promise.all(
       myConvos.map(async (convo) => {
         const otherIds = convo.participants.filter((p) => p !== userId);
@@ -38,11 +48,11 @@ export const list = query({
             isGroup: true,
             name: convo.name,
             participants: participants.filter(Boolean),
-            otherUser: null,
-            lastMessage: convo.lastMessage,
-            lastMessageAt: convo.lastMessageAt,
-            lastMessageSender: convo.lastMessageSender,
-            lastMessageType: convo.lastMessageType,
+            otherUser: null,          lastMessage: convo.lastMessage,
+          lastMessageAt: convo.lastMessageAt,
+          lastMessageSender: convo.lastMessageSender,
+          lastMessageType: convo.lastMessageType,
+          unreadCount: unreadMap.get(convo._id) ?? 0,
           };
         }
 
@@ -66,9 +76,7 @@ export const list = query({
           lastMessageAt: convo.lastMessageAt,
           lastMessageSender: convo.lastMessageSender,
           lastMessageType: convo.lastMessageType,
-          callState: convo.callState,
-          callCaller: convo.callCaller,
-          callType: convo.callType,
+          unreadCount: unreadMap.get(convo._id) ?? 0,
         };
       })
     );
