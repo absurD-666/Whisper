@@ -58,9 +58,9 @@ function Auth({ redirectAfterAuth = "/messenger" }: AuthProps) {
         </button>
       </header>
 
-      <main className="flex-1 flex items-center justify-center px-6">
-        <div className="w-full max-w-sm">
-          <div className="space-y-6">
+      <main className="flex-1 flex items-center justify-center px-6 pb-20">
+        <div className="w-full max-w-md premium-surface rounded-3xl p-7 sm:p-10">
+          <div className="space-y-7">
             <div>
               <h1 className="text-2xl font-bold tracking-tight">
                 {mode === "signin" ? "Вход в Whisper" : "Регистрация"}

@@ -53,8 +53,8 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <header className="w-full px-6 py-5 flex items-center justify-between max-w-5xl mx-auto">
+    <div className="min-h-screen flex flex-col bg-background text-foreground overflow-hidden">
+      <header className="w-full px-5 sm:px-8 py-6 flex items-center justify-between max-w-6xl mx-auto relative z-10">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <MessageCircle className="w-4 h-4 text-primary-foreground" />
@@ -75,13 +75,13 @@ export default function Landing() {
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl w-full text-center">
+      <main className="flex-1 flex flex-col items-center justify-center px-5 sm:px-8 pt-20 pb-12">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: "easeOut" }} className="max-w-4xl w-full text-center">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-8">
             <Shield className="w-3 h-3" />
             Сквозное шифрование
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold tracking-tight leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-semibold tracking-[-0.045em] leading-[1.04]">
             Приватные сообщения,<br /><span className="text-primary">на ваших условиях.</span>
           </h1>
           <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
@@ -95,7 +95,7 @@ export default function Landing() {
           </div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.3 }} className="mt-32 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl w-full px-6">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.55, delay: 0.2 }} className="mt-24 sm:mt-32 grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl w-full">
           <Feature icon={<Shield className="w-5 h-5" />} title="Сквозное шифрование" description="Каждое сообщение зашифровано AES-256-GCM. Только вы и ваши контакты можете их прочитать." />
           <Feature icon={<MessageCircle className="w-5 h-5" />} title="Групповые чаты" description="Общайтесь в группах, пересылайте и редактируйте сообщения. Полный контроль над диалогом." />
           <Feature icon={<Zap className="w-5 h-5" />} title="Мгновенная доставка" description="Сообщения приходят в реальном времени. Индикаторы набора, статус прочтения, онлайн-статус." />
@@ -189,8 +189,8 @@ export default function Landing() {
 
 function Feature({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="p-6 rounded-2xl bg-card border border-border/50">
-      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">{icon}</div>
+    <div className="p-7 rounded-2xl bg-card border border-border/70 text-left hover:border-primary/25 transition-colors">
+      <div className="w-10 h-10 rounded-xl bg-primary/8 flex items-center justify-center text-primary mb-5">{icon}</div>
       <h3 className="text-sm font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>

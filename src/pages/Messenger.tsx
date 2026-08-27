@@ -304,7 +304,7 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
     <div className="flex-1 flex flex-col h-full bg-background">
       {previewImage && <ImagePreview url={previewImage} onClose={() => setPreviewImage(null)} />}
       {pinnedMsg && (<div className="px-4 py-2 bg-primary/5 border-b border-border/20 flex items-center gap-2 shrink-0 cursor-pointer" onClick={() => { const el = document.getElementById(`msg-${pinnedMsg._id}`); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}><Pin className="w-3.5 h-3.5 text-primary shrink-0" /><div className="flex-1 min-w-0"><p className="text-[10px] text-primary font-medium">{pinnedMsg.senderName}</p><p className="text-xs text-muted-foreground truncate">{pinnedMsg.body}</p></div><button onClick={(e) => { e.stopPropagation(); unpinMessageMutation({ conversationId: conversationId as any }); }} className="p-1 text-muted-foreground hover:text-foreground"><PinOff className="w-3.5 h-3.5" /></button></div>)}
-      <header className="flex items-center gap-3 px-5 py-3 bg-card border-b border-border/30 shrink-0">
+      <header className="flex items-center gap-3 px-4 sm:px-6 py-3.5 bg-card border-b border-border/70 shrink-0">
         <button onClick={onBack} className="md:hidden p-1 text-muted-foreground hover:text-foreground"><ArrowLeft className="w-5 h-5" /></button>
         {convo.isGroup ? (<div className="flex items-center gap-3 flex-1 min-w-0"><div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold flex items-center justify-center text-sm"><Users className="w-4 h-4" /></div><div><p className="text-sm font-semibold">{convo.name}</p><p className="text-[11px] text-muted-foreground">{convo.participants?.length} участников</p></div></div>) : convo.otherUser && (<><div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => convo.otherUser?._id && onViewProfile(convo.otherUser._id as string)}><Avatar nickname={convo.otherUser.nickname ?? "?"} online={convo.otherUser.online} size="sm" avatarStorageId={convo.otherUser.avatar} /><div><p className="text-sm font-semibold hover:underline">{convo.otherUser.nickname}</p><p className="text-[11px] text-muted-foreground">{convo.otherUser.online ? <span className="text-emerald-500">в сети</span> : "не в сети"}</p></div></div></>)}
       </header>
@@ -410,7 +410,7 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
       )}
 
       {/* Input Area */}
-      <div className="border-t border-border/30 bg-card px-4 py-3 shrink-0">
+      <div className="border-t border-border/70 bg-card px-3 sm:px-5 py-3.5 shrink-0">
         <div className="max-w-2xl mx-auto flex items-end gap-2">
           <input type="file" ref={imageInputRef} accept="image/*" className="hidden" onChange={handleSendImage} />
           <Button size="icon" variant="ghost" className="shrink-0 text-muted-foreground hover:text-primary" onClick={() => imageInputRef.current?.click()} disabled={uploadingImg}>
@@ -559,7 +559,7 @@ export default function Messenger() {
 
       <div className="flex flex-1 h-full overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-80 border-r border-border/30 flex flex-col bg-card shrink-0 h-full">
+        <aside className={`${activeChat && view === "chat" ? "hidden md:flex" : "flex"} w-full md:w-80 lg:w-96 border-r border-border/70 flex-col bg-card shrink-0 h-full`}>
           {/* Sidebar Header */}
           <div className="px-4 py-3 border-b border-border/30 shrink-0">
             <div className="flex items-center justify-between mb-3">
@@ -664,7 +664,7 @@ export default function Messenger() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col h-full">
+        <main className={`${activeChat && view === "chat" ? "flex" : "hidden md:flex"} flex-1 flex-col h-full min-w-0`}>
           {activeChat && view === "chat" ? (
             <ChatView conversationId={activeChat} onBack={() => { setActiveChat(null); setView("chats"); }} onViewProfile={(id) => setProfileUserId(id)} />
           ) : (
