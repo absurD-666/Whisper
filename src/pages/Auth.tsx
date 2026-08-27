@@ -48,28 +48,22 @@ function Auth({ redirectAfterAuth = "/messenger" }: AuthProps) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <header className="px-6 py-5">
-        <button onClick={() => navigate("/")} className="flex items-center gap-2 text-foreground">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <MessageCircle className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="text-sm font-semibold tracking-tight">Whisper</span>
-        </button>
-      </header>
+    <div className="min-h-screen grid lg:grid-cols-[.8fr_1.2fr] bg-background">
+      <aside className="hidden lg:flex bg-foreground text-background p-12 flex-col justify-between">
+        <button onClick={() => navigate("/")} className="flex items-center gap-3 w-fit"><span className="w-9 h-9 bg-primary flex items-center justify-center"><MessageCircle className="w-4 h-4" /></span><span className="font-serif text-xl">Whisper</span></button>
+        <blockquote className="font-serif text-5xl leading-[.95]">«Личное должно оставаться <em className="text-primary">личным.</em>»</blockquote>
+        <p className="text-[10px] uppercase tracking-[.24em] opacity-50">Private by temperament / 2026</p>
+      </aside>
 
-      <main className="flex-1 flex items-center justify-center px-6 pb-20">
-        <div className="w-full max-w-md premium-surface rounded-3xl p-7 sm:p-10">
-          <div className="space-y-7">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {mode === "signin" ? "Вход в Whisper" : "Регистрация"}
-              </h1>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {mode === "signin"
-                  ? "Введите email и пароль."
-                  : "Создайте аккаунт, чтобы начать общаться."}
-              </p>
+      <main className="min-h-screen flex flex-col">
+        <header className="lg:hidden h-20 px-5 flex items-center border-b border-foreground/20"><button onClick={() => navigate("/")} className="font-serif text-xl">Whisper</button></header>
+        <div className="flex-1 flex items-center justify-center px-5 py-16">
+        <div className="w-full max-w-lg">
+          <div className="space-y-10">
+            <div className="border-b border-foreground/25 pb-8">
+              <p className="text-[10px] uppercase tracking-[.25em] text-primary mb-5">{mode === "signin" ? "Возвращение" : "Первое знакомство"}</p>
+              <h1 className="text-5xl sm:text-6xl tracking-[-.05em] leading-none">{mode === "signin" ? "С возвращением." : "Начнём тихо."}</h1>
+              <p className="mt-5 text-sm text-muted-foreground">{mode === "signin" ? "Введите данные, чтобы продолжить разговор." : "Создайте приватное пространство для общения."}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -108,6 +102,7 @@ function Auth({ redirectAfterAuth = "/messenger" }: AuthProps) {
               </button>
             </div>
           </div>
+        </div>
         </div>
       </main>
     </div>

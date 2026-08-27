@@ -4,14 +4,13 @@ import { useNavigate } from "react-router";
 export default function NotFound() {
   const navigate = useNavigate();
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      className="min-h-screen flex flex-col items-center justify-center bg-background">
-      <div className="premium-surface rounded-3xl px-12 py-10 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary mb-4">Ошибка 404</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-foreground mb-3">Страница не найдена</h1>
-        <p className="text-sm text-muted-foreground mb-7">Возможно, адрес изменился или был удалён.</p>
-        <button onClick={() => navigate("/")} className="text-sm font-medium bg-primary text-primary-foreground rounded-xl px-5 py-2.5 hover:opacity-90">На главную</button>
-      </div>
-    </motion.div>
+    <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="min-h-screen grid md:grid-cols-2 bg-background">
+      <section className="p-8 sm:p-14 flex flex-col justify-between border-r border-foreground/20">
+        <span className="font-serif text-xl">Whisper</span>
+        <div><p className="text-[10px] uppercase tracking-[.28em] text-primary mb-6">Ошибка / 404</p><h1 className="text-[clamp(4rem,11vw,9rem)] leading-[.78] tracking-[-.07em]">Здесь<br/>тихо.</h1></div>
+        <button onClick={() => navigate("/")} className="group w-fit flex items-center gap-8 border-b border-foreground pb-3 text-xs uppercase tracking-[.2em] hover:text-primary hover:border-primary">Вернуться на главную <span className="group-hover:translate-x-2 transition-transform">→</span></button>
+      </section>
+      <aside className="bg-foreground text-background p-8 sm:p-14 flex items-end"><p className="font-serif text-3xl max-w-sm">Страница исчезла, но ваши разговоры по-прежнему на месте.</p></aside>
+    </motion.main>
   );
 }

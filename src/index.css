@@ -41,72 +41,72 @@
 }
 
 :root {
-  --radius: 0.875rem;
-  --background: #f6f6f3;
-  --foreground: #171816;
-  --card: #fdfdfb;
-  --card-foreground: #171816;
-  --popover: #ffffff;
-  --popover-foreground: #171816;
-  --primary: #1d4f43;
-  --primary-foreground: #ffffff;
-  --secondary: #eeeee9;
-  --secondary-foreground: #242622;
-  --muted: #eeeee9;
-  --muted-foreground: #6d716a;
-  --accent: #1d4f43;
-  --accent-foreground: #ffffff;
-  --destructive: #b83a3a;
-  --border: #dedfd8;
-  --input: #e8e9e3;
-  --ring: #1d4f43;
-  --chart-1: #1d4f43;
-  --chart-2: #6f806f;
-  --chart-3: #a47b4f;
-  --chart-4: #7d6b83;
-  --chart-5: #4f6f7a;
-  --sidebar: #fdfdfb;
-  --sidebar-foreground: #171816;
-  --sidebar-primary: #1d4f43;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #eeeee9;
-  --sidebar-accent-foreground: #242622;
-  --sidebar-border: #dedfd8;
-  --sidebar-ring: #1d4f43;
+  --radius: 0.35rem;
+  --background: #f1eee7;
+  --foreground: #171713;
+  --card: #faf8f2;
+  --card-foreground: #171713;
+  --popover: #fffdf7;
+  --popover-foreground: #171713;
+  --primary: #d94b2b;
+  --primary-foreground: #fffaf2;
+  --secondary: #ded9ce;
+  --secondary-foreground: #24231e;
+  --muted: #e7e2d8;
+  --muted-foreground: #706d64;
+  --accent: #d94b2b;
+  --accent-foreground: #fffaf2;
+  --destructive: #b52d2d;
+  --border: #cbc5b9;
+  --input: #ded9ce;
+  --ring: #d94b2b;
+  --chart-1: #d94b2b;
+  --chart-2: #1f5b50;
+  --chart-3: #b58a3b;
+  --chart-4: #5d536b;
+  --chart-5: #315d73;
+  --sidebar: #1b1b18;
+  --sidebar-foreground: #f5f1e8;
+  --sidebar-primary: #ef6544;
+  --sidebar-primary-foreground: #fffaf2;
+  --sidebar-accent: #30302b;
+  --sidebar-accent-foreground: #f5f1e8;
+  --sidebar-border: #3b3a34;
+  --sidebar-ring: #ef6544;
 }
 
 .dark {
-  --background: #111310;
-  --foreground: #f2f2ed;
-  --card: #181a17;
-  --card-foreground: #f2f2ed;
-  --popover: #1b1d1a;
-  --popover-foreground: #f2f2ed;
-  --primary: #8eb9a8;
-  --primary-foreground: #10251e;
-  --secondary: #222520;
-  --secondary-foreground: #f2f2ed;
-  --muted: #222520;
-  --muted-foreground: #a4a89f;
-  --accent: #8eb9a8;
-  --accent-foreground: #10251e;
-  --destructive: #e06b67;
-  --border: #30332d;
-  --input: #242721;
-  --ring: #8eb9a8;
-  --chart-1: #8eb9a8;
-  --chart-2: #9cae8d;
-  --chart-3: #c39a6b;
-  --chart-4: #a58ca8;
-  --chart-5: #7fa0aa;
-  --sidebar: #161815;
-  --sidebar-foreground: #f2f2ed;
-  --sidebar-primary: #8eb9a8;
-  --sidebar-primary-foreground: #10251e;
-  --sidebar-accent: #222520;
-  --sidebar-accent-foreground: #f2f2ed;
-  --sidebar-border: #30332d;
-  --sidebar-ring: #8eb9a8;
+  --background: #151512;
+  --foreground: #f1ede4;
+  --card: #1d1d19;
+  --card-foreground: #f1ede4;
+  --popover: #24231f;
+  --popover-foreground: #f1ede4;
+  --primary: #ef6544;
+  --primary-foreground: #1b100c;
+  --secondary: #2b2a25;
+  --secondary-foreground: #f1ede4;
+  --muted: #292823;
+  --muted-foreground: #aaa59a;
+  --accent: #ef6544;
+  --accent-foreground: #1b100c;
+  --destructive: #ef6a62;
+  --border: #3b3932;
+  --input: #302f29;
+  --ring: #ef6544;
+  --chart-1: #ef6544;
+  --chart-2: #6ba99b;
+  --chart-3: #d0a85a;
+  --chart-4: #a99ab8;
+  --chart-5: #78a6bb;
+  --sidebar: #10100e;
+  --sidebar-foreground: #f1ede4;
+  --sidebar-primary: #ef6544;
+  --sidebar-primary-foreground: #1b100c;
+  --sidebar-accent: #24231f;
+  --sidebar-accent-foreground: #f1ede4;
+  --sidebar-border: #34332d;
+  --sidebar-ring: #ef6544;
 }
 
 @layer base {
@@ -114,14 +114,20 @@
     @apply border-border outline-ring/50;
   }
   html {
-    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Arial Narrow", "Roboto Condensed", Inter, ui-sans-serif, system-ui, sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
   body {
     @apply bg-background text-foreground;
     min-width: 320px;
-    letter-spacing: -0.008em;
+    letter-spacing: -0.012em;
+    background-image: linear-gradient(90deg, color-mix(in srgb, var(--border) 22%, transparent) 1px, transparent 1px);
+    background-size: 25vw 100%;
+  }
+  h1, h2, h3 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 500;
   }
   ::selection {
     background: color-mix(in srgb, var(--primary) 18%, transparent);
@@ -152,9 +158,49 @@
 }
 
 .premium-surface {
-  background: color-mix(in srgb, var(--card) 94%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-  box-shadow: 0 24px 70px rgba(24, 29, 22, 0.08), 0 2px 8px rgba(24, 29, 22, 0.035);
+  background: var(--card);
+  border: 1px solid var(--foreground);
+  box-shadow: 10px 10px 0 color-mix(in srgb, var(--foreground) 12%, transparent);
+}
+
+.messenger-shell aside {
+  background: var(--sidebar) !important;
+  color: var(--sidebar-foreground);
+  border-color: var(--sidebar-border) !important;
+}
+.messenger-shell aside input,
+.messenger-shell aside textarea {
+  background: var(--sidebar-accent) !important;
+  color: var(--sidebar-foreground);
+}
+.messenger-shell aside h1 {
+  font-size: 2rem;
+  font-style: italic;
+}
+.messenger-shell main > div {
+  background-image: linear-gradient(color-mix(in srgb, var(--border) 25%, transparent) 1px, transparent 1px);
+  background-size: 100% 4rem;
+}
+.messenger-shell header {
+  min-height: 4.75rem;
+}
+.messenger-shell [class*="rounded-full"] {
+  border-radius: 0.35rem;
+}
+.messenger-shell [class*="rounded-2xl"],
+.messenger-shell [class*="rounded-xl"],
+.messenger-shell [class*="rounded-3xl"] {
+  border-radius: 0.45rem;
+}
+.messenger-shell button:hover {
+  transform: translateY(-1px);
+}
+.messenger-shell aside button:hover {
+  background-color: var(--sidebar-accent);
+}
+@media (max-width: 767px) {
+  .messenger-shell aside { width: 100%; }
+  .messenger-shell header { min-height: 4.25rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

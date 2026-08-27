@@ -546,7 +546,7 @@ export default function Messenger() {
 
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden messenger-shell">
       {previewImage && <ImagePreview url={previewImage} onClose={() => setPreviewImage(null)} />}
 
       <AnimatePresence>

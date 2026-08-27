@@ -14,8 +14,10 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 function RouteLoading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-2 h-2 rounded-full bg-primary/30 animate-pulse" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-foreground text-background gap-6">
+      <div className="font-serif text-4xl italic">Whisper</div>
+      <div className="w-24 h-px bg-background/20 overflow-hidden"><div className="w-1/2 h-full bg-primary animate-pulse" /></div>
+      <p className="text-[10px] uppercase tracking-[.28em] opacity-50">Настраиваем тишину</p>
     </div>
   );
 }
