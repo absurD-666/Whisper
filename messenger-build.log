@@ -1,0 +1,28 @@
+
+> whisper@0.0.0 build
+> tsc -b && vite build
+
+[36mvite v7.3.6 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32m✓[39m 2395 modules transformed.
+[33mGenerated an empty chunk: "convex-vendor".[39m
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                        [39m[1m[2m  1.48 kB[22m[1m[22m[2m │ gzip:  0.74 kB[22m
+[2mdist/[22m[35massets/index-h2oxEGIg.css         [39m[1m[2m143.18 kB[22m[1m[22m[2m │ gzip: 22.24 kB[22m
+[2mdist/[22m[36massets/convex-vendor-l0sNRNKZ.js  [39m[1m[2m  0.00 kB[22m[1m[22m[2m │ gzip:  0.02 kB[22m
+[2mdist/[22m[36massets/arrow-left-DgU_34AU.js     [39m[1m[2m  0.17 kB[22m[1m[22m[2m │ gzip:  0.16 kB[22m
+[2mdist/[22m[36massets/mail-DzSuN95U.js           [39m[1m[2m  0.49 kB[22m[1m[22m[2m │ gzip:  0.33 kB[22m
+[2mdist/[22m[36massets/x-B9x3nrX9.js              [39m[1m[2m  0.68 kB[22m[1m[22m[2m │ gzip:  0.39 kB[22m
+[2mdist/[22m[36massets/input-BxD6IHPw.js          [39m[1m[2m  0.84 kB[22m[1m[22m[2m │ gzip:  0.46 kB[22m
+[2mdist/[22m[36massets/NotFound-DbO66A6E.js       [39m[1m[2m  1.34 kB[22m[1m[22m[2m │ gzip:  0.78 kB[22m
+[2mdist/[22m[36massets/Auth-BppzDKAb.js           [39m[1m[2m  4.52 kB[22m[1m[22m[2m │ gzip:  1.92 kB[22m
+[2mdist/[22m[36massets/Landing-BCsEjhwm.js        [39m[1m[2m 13.47 kB[22m[1m[22m[2m │ gzip:  4.53 kB[22m
+[2mdist/[22m[36massets/button-CfGsXKku.js         [39m[1m[2m 30.05 kB[22m[1m[22m[2m │ gzip:  9.80 kB[22m
+[2mdist/[22m[36massets/radix-ui-Bq7ySNxF.js       [39m[1m[2m 41.58 kB[22m[1m[22m[2m │ gzip: 14.16 kB[22m
+[2mdist/[22m[36massets/react-vendor-YanEohqf.js   [39m[1m[2m 46.07 kB[22m[1m[22m[2m │ gzip: 16.62 kB[22m
+[2mdist/[22m[36massets/Messenger-DGvuTaZZ.js      [39m[1m[2m 46.10 kB[22m[1m[22m[2m │ gzip: 12.21 kB[22m
+[2mdist/[22m[36massets/framer-motion-Cq59QGcS.js  [39m[1m[2m127.17 kB[22m[1m[22m[2m │ gzip: 41.88 kB[22m
+[2mdist/[22m[36massets/index-CqgUHC4b.js          [39m[1m[2m312.55 kB[22m[1m[22m[2m │ gzip: 95.00 kB[22m
+[32m✓ built in 15.72s[39m
+BUILD_OK  
