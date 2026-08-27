@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Shield, MessageCircle, Zap, ArrowRight, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Shield, MessageCircle, Zap, ArrowRight, Mail, Lock, User, Loader2, Search, MoreHorizontal, Paperclip, CheckCheck } from "lucide-react";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -54,52 +54,69 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-hidden">
-      <header className="h-20 px-5 sm:px-10 flex items-center justify-between border-b border-foreground/20 relative z-10">
+      <header className="h-18 px-5 sm:px-10 lg:px-16 flex items-center justify-between border-b border-border/70 relative z-10 bg-background/80 backdrop-blur-xl">
         <button onClick={() => navigate("/")} className="flex items-center gap-3" aria-label="Whisper, главная">
-          <span className="w-9 h-9 bg-foreground text-background flex items-center justify-center"><MessageCircle className="w-4 h-4" /></span>
-          <span className="font-serif text-xl">Whisper</span>
+          <span className="w-9 h-9 rounded-xl bg-primary text-white flex items-center justify-center dp-glow"><MessageCircle className="w-4 h-4" /></span>
+          <span className="text-lg font-semibold tracking-[-.03em]">Whisper</span>
         </button>
-        <div className="flex items-center gap-5">
-          {!isAuthenticated && <button onClick={() => openAuth("signin")} className="text-xs uppercase tracking-[.18em] hover:text-primary">Войти</button>}
-          <button onClick={() => isAuthenticated ? navigate("/messenger") : openAuth("signup")} className="px-5 py-3 bg-foreground text-background text-xs uppercase tracking-[.16em] hover:bg-primary transition-colors">
-            {isAuthenticated ? "Открыть" : "Создать аккаунт"}
-          </button>
+        <div className="flex items-center gap-3">
+          {!isAuthenticated && <button onClick={() => openAuth("signin")} className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Войти</button>}
+          <Button onClick={() => isAuthenticated ? navigate("/messenger") : openAuth("signup")} className="h-10 px-5 rounded-xl shadow-[0_10px_30px_rgba(91,124,255,.22)]">
+            {isAuthenticated ? "Открыть приложение" : "Начать общение"}<ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </header>
 
-      <main>
-        <section className="min-h-[calc(100vh-5rem)] grid lg:grid-cols-[1.35fr_.65fr]">
-          <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .7 }} className="px-5 sm:px-10 lg:px-16 py-16 lg:py-24 flex flex-col justify-between border-r border-foreground/20">
-            <div className="flex items-center gap-3 text-[10px] uppercase tracking-[.28em] text-muted-foreground"><span className="w-8 h-px bg-primary" />Частная переписка / 2026</div>
-            <div className="my-16">
-              <h1 className="text-[clamp(4rem,10vw,9.5rem)] leading-[.78] tracking-[-.075em] max-w-5xl">Говорите<br/><em className="font-normal text-primary">тише.</em></h1>
-              <div className="mt-12 grid sm:grid-cols-[1fr_1fr] gap-8 max-w-3xl border-t border-foreground/25 pt-6">
-                <p className="text-xl sm:text-2xl leading-tight">Мессенджер, который не превращает личное в продукт.</p>
-                <p className="text-sm leading-relaxed text-muted-foreground">Сообщения, голос, изображения и группы — в спокойном пространстве без рекламы и лишнего шума.</p>
-              </div>
+      <main className="dp-atmosphere">
+        <section className="min-h-[calc(100vh-4.5rem)] max-w-[1440px] mx-auto px-5 sm:px-10 lg:px-16 py-16 lg:py-24 grid lg:grid-cols-[.9fr_1.1fr] gap-14 lg:gap-20 items-center">
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .65 }}>
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 text-xs text-primary"><Shield className="w-3.5 h-3.5" />Приватное общение нового уровня</div>
+            <h1 className="mt-7 text-[clamp(3.4rem,7vw,6.8rem)] leading-[.94] tracking-[-.065em] max-w-3xl">Связь без<br/><span className="text-primary">компромиссов.</span></h1>
+            <p className="mt-7 max-w-xl text-lg sm:text-xl leading-relaxed text-muted-foreground">Быстрые сообщения, голос, изображения и группы в точном, спокойном интерфейсе, созданном вокруг ваших разговоров.</p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <Button size="lg" onClick={() => isAuthenticated ? navigate("/messenger") : openAuth("signup")} disabled={isLoading} className="h-12 px-6 rounded-xl dp-glow">{isAuthenticated ? "Вернуться к разговорам" : "Создать аккаунт"}<ArrowRight className="w-4 h-4" /></Button>
+              {!isAuthenticated && <Button size="lg" variant="outline" onClick={() => openAuth("signin")} className="h-12 px-6 rounded-xl bg-card/40">У меня есть аккаунт</Button>}
             </div>
-            <button onClick={() => isAuthenticated ? navigate("/messenger") : openAuth("signup")} disabled={isLoading} className="group w-fit flex items-center gap-8 border-b border-foreground pb-3 text-sm uppercase tracking-[.18em] hover:text-primary hover:border-primary">
-              {isAuthenticated ? "Вернуться к разговорам" : "Начать разговор"}<ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-            </button>
+            <div className="mt-12 grid sm:grid-cols-3 gap-3">
+              <Feature icon={<Shield className="w-4 h-4" />} title="Приватность" description="Ваши разговоры остаются вашими." />
+              <Feature icon={<Zap className="w-4 h-4" />} title="Мгновенно" description="Доставка и статусы в реальном времени." />
+              <Feature icon={<MessageCircle className="w-4 h-4" />} title="В контексте" description="Ответы, группы и медиа без шума." />
+            </div>
           </motion.div>
 
-          <motion.aside initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .25 }} className="bg-foreground text-background p-8 sm:p-12 flex flex-col justify-between min-h-[520px]">
-            <div className="flex justify-between text-[10px] uppercase tracking-[.22em] opacity-60"><span>Манифест</span><span>01—03</span></div>
-            <div className="space-y-10">
-              <Feature icon={<Shield className="w-5 h-5" />} title="Только между вами" description="Сквозное шифрование сохраняет содержание разговора внутри разговора." />
-              <Feature icon={<MessageCircle className="w-5 h-5" />} title="Живой контекст" description="Группы, ответы, пересылка и редактирование — без потери нити." />
-              <Feature icon={<Zap className="w-5 h-5" />} title="Сейчас, не потом" description="Доставка в реальном времени, статусы и присутствие без навязчивости." />
+          <motion.div initial={{ opacity: 0, scale: .97, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: .75, delay: .12 }} className="relative">
+            <div className="absolute -inset-10 bg-primary/10 blur-3xl rounded-full" />
+            <div className="relative dp-panel rounded-3xl overflow-hidden min-h-[540px] grid grid-cols-[72px_210px_1fr]">
+              <div className="border-r border-border/70 p-4 flex flex-col items-center gap-4 bg-black/15">
+                <span className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center"><MessageCircle className="w-4 h-4" /></span>
+                {[MessageCircle, User, Shield].map((Icon, i) => <span key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center ${i === 0 ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}><Icon className="w-4 h-4" /></span>)}
+              </div>
+              <div className="border-r border-border/70 p-4 bg-card/35">
+                <div className="flex items-center justify-between"><span className="font-semibold">Сообщения</span><MoreHorizontal className="w-4 h-4 text-muted-foreground" /></div>
+                <div className="mt-4 h-9 rounded-xl border border-border bg-background/50 flex items-center gap-2 px-3 text-xs text-muted-foreground"><Search className="w-3.5 h-3.5" />Поиск</div>
+                <div className="mt-4 space-y-2">
+                  {["Команда продукта", "Анна", "Дизайн-система", "Максим"].map((name, i) => <div key={name} className={`p-3 rounded-xl ${i === 0 ? "bg-primary/12 border border-primary/20" : "border border-transparent"}`}><div className="flex gap-2.5"><span className="w-8 h-8 rounded-lg bg-primary/15 text-primary flex items-center justify-center text-[10px] font-bold">{name.slice(0,2).toUpperCase()}</span><div className="min-w-0"><p className="text-xs font-medium truncate">{name}</p><p className="mt-1 text-[10px] text-muted-foreground truncate">Последнее сообщение...</p></div></div></div>)}
+                </div>
+              </div>
+              <div className="flex flex-col min-w-0">
+                <div className="h-16 border-b border-border/70 px-5 flex items-center justify-between"><div><p className="text-sm font-semibold">Команда продукта</p><p className="text-[10px] text-emerald-400">4 участника в сети</p></div><MoreHorizontal className="w-4 h-4 text-muted-foreground" /></div>
+                <div className="flex-1 p-5 space-y-4 flex flex-col justify-end">
+                  <div className="max-w-[78%] rounded-2xl rounded-bl-md bg-muted px-4 py-3 text-xs leading-relaxed">Новая версия интерфейса готова к проверке.</div>
+                  <div className="max-w-[78%] self-end rounded-2xl rounded-br-md bg-primary px-4 py-3 text-xs leading-relaxed text-white">Отлично. Всё выглядит точно и спокойно.<span className="mt-1 flex justify-end"><CheckCheck className="w-3 h-3 opacity-70" /></span></div>
+                  <div className="max-w-[70%] rounded-2xl rounded-bl-md bg-muted px-4 py-3 text-xs">Запускаем сегодня.</div>
+                </div>
+                <div className="p-4 border-t border-border/70"><div className="h-11 rounded-xl border border-border bg-background/60 px-3 flex items-center gap-3 text-xs text-muted-foreground"><Paperclip className="w-4 h-4" /><span className="flex-1">Написать сообщение...</span><span className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center"><ArrowRight className="w-3.5 h-3.5" /></span></div></div>
+              </div>
             </div>
-            <p className="font-serif italic text-2xl text-primary">Private by temperament.</p>
-          </motion.aside>
+          </motion.div>
         </section>
       </main>
 
-      <footer className="px-5 sm:px-10 py-6 border-t border-foreground/20 flex justify-between text-[10px] uppercase tracking-[.2em] text-muted-foreground"><span>Whisper Messenger</span><span>Безопасно / Приватно</span></footer>
+      <footer className="px-5 sm:px-10 lg:px-16 py-6 border-t border-border/70 flex justify-between text-xs text-muted-foreground"><span>© Whisper</span><span>Приватно. Быстро. Точно.</span></footer>
 
       {/* Auth Dialog */}
       <Dialog open={authOpen} onOpenChange={setAuthOpen}>
-        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden border-border/50">
+        <DialogContent className="sm:max-w-sm p-0 gap-0 overflow-hidden dp-panel border-border/80 rounded-2xl">
           <div className="p-6 pb-4">
             <DialogTitle className="text-xl font-bold tracking-tight">
               {authMode === "signup" ? "Регистрация" : "Вход"}
@@ -182,9 +199,10 @@ export default function Landing() {
 
 function Feature({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="grid grid-cols-[2.5rem_1fr] gap-4 border-t border-background/25 pt-5">
-      <div className="text-primary">{icon}</div>
-      <div><h3 className="font-serif text-xl">{title}</h3><p className="mt-2 text-xs leading-relaxed opacity-60">{description}</p></div>
+    <div className="rounded-2xl border border-border/70 bg-card/45 p-4">
+      <div className="w-8 h-8 rounded-lg bg-primary/12 text-primary flex items-center justify-center">{icon}</div>
+      <h3 className="mt-4 text-sm font-semibold">{title}</h3>
+      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{description}</p>
     </div>
   );
 }

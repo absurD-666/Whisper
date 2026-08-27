@@ -1,9 +1,9 @@
 import { Toaster } from "@/components/ui/sonner";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
-import React, { StrictMode, useEffect, lazy, Suspense } from "react";
+import React, { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router";
+import { BrowserRouter, Route, Routes } from "react-router";
 import { RequireAuth } from "@/components/RequireAuth";
 import "./index.css";
 
@@ -14,10 +14,12 @@ const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 function RouteLoading() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-foreground text-background gap-6">
-      <div className="font-serif text-4xl italic">Whisper</div>
-      <div className="w-24 h-px bg-background/20 overflow-hidden"><div className="w-1/2 h-full bg-primary animate-pulse" /></div>
-      <p className="text-[10px] uppercase tracking-[.28em] opacity-50">Настраиваем тишину</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground gap-5 dp-atmosphere">
+      <div className="relative z-10 w-12 h-12 rounded-2xl border border-primary/30 bg-primary/10 flex items-center justify-center dp-glow">
+        <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+      </div>
+      <div className="relative z-10 text-lg font-semibold tracking-[-.03em]">Whisper</div>
+      <p className="relative z-10 text-xs text-muted-foreground">Подключаем защищённое пространство…</p>
     </div>
   );
 }

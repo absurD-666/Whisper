@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/digital-precision.css";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -41,72 +42,69 @@
 }
 
 :root {
-  --radius: 0.35rem;
-  --background: #f1eee7;
-  --foreground: #171713;
-  --card: #faf8f2;
-  --card-foreground: #171713;
-  --popover: #fffdf7;
-  --popover-foreground: #171713;
-  --primary: #d94b2b;
-  --primary-foreground: #fffaf2;
-  --secondary: #ded9ce;
-  --secondary-foreground: #24231e;
-  --muted: #e7e2d8;
-  --muted-foreground: #706d64;
-  --accent: #d94b2b;
-  --accent-foreground: #fffaf2;
-  --destructive: #b52d2d;
-  --border: #cbc5b9;
-  --input: #ded9ce;
-  --ring: #d94b2b;
-  --chart-1: #d94b2b;
-  --chart-2: #1f5b50;
-  --chart-3: #b58a3b;
-  --chart-4: #5d536b;
-  --chart-5: #315d73;
-  --sidebar: #1b1b18;
-  --sidebar-foreground: #f5f1e8;
-  --sidebar-primary: #ef6544;
-  --sidebar-primary-foreground: #fffaf2;
-  --sidebar-accent: #30302b;
-  --sidebar-accent-foreground: #f5f1e8;
-  --sidebar-border: #3b3a34;
-  --sidebar-ring: #ef6544;
+  color-scheme: dark;
+  --radius: 0.75rem;
+  --background: #080a0f;
+  --foreground: #f4f7ff;
+  --card: #10131b;
+  --card-foreground: #f4f7ff;
+  --popover: #141824;
+  --popover-foreground: #f4f7ff;
+  --primary: #5b7cff;
+  --primary-foreground: #ffffff;
+  --secondary: #171c28;
+  --secondary-foreground: #e9edfa;
+  --muted: #151a25;
+  --muted-foreground: #929bad;
+  --accent: #202a4a;
+  --accent-foreground: #f4f7ff;
+  --destructive: #f05d6c;
+  --border: #252b38;
+  --input: #202633;
+  --ring: #6d8aff;
+  --chart-1: #5b7cff;
+  --chart-2: #42c7b9;
+  --chart-3: #9b7cff;
+  --chart-4: #5aa8ff;
+  --chart-5: #d06cff;
+  --sidebar: #0b0e14;
+  --sidebar-foreground: #f4f7ff;
+  --sidebar-primary: #5b7cff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #151a25;
+  --sidebar-accent-foreground: #f4f7ff;
+  --sidebar-border: #202633;
+  --sidebar-ring: #6d8aff;
 }
 
 .dark {
-  --background: #151512;
-  --foreground: #f1ede4;
-  --card: #1d1d19;
-  --card-foreground: #f1ede4;
-  --popover: #24231f;
-  --popover-foreground: #f1ede4;
-  --primary: #ef6544;
-  --primary-foreground: #1b100c;
-  --secondary: #2b2a25;
-  --secondary-foreground: #f1ede4;
-  --muted: #292823;
-  --muted-foreground: #aaa59a;
-  --accent: #ef6544;
-  --accent-foreground: #1b100c;
-  --destructive: #ef6a62;
-  --border: #3b3932;
-  --input: #302f29;
-  --ring: #ef6544;
-  --chart-1: #ef6544;
-  --chart-2: #6ba99b;
-  --chart-3: #d0a85a;
-  --chart-4: #a99ab8;
-  --chart-5: #78a6bb;
-  --sidebar: #10100e;
-  --sidebar-foreground: #f1ede4;
-  --sidebar-primary: #ef6544;
-  --sidebar-primary-foreground: #1b100c;
-  --sidebar-accent: #24231f;
-  --sidebar-accent-foreground: #f1ede4;
-  --sidebar-border: #34332d;
-  --sidebar-ring: #ef6544;
+  color-scheme: dark;
+  --background: #080a0f;
+  --foreground: #f4f7ff;
+  --card: #10131b;
+  --card-foreground: #f4f7ff;
+  --popover: #141824;
+  --popover-foreground: #f4f7ff;
+  --primary: #5b7cff;
+  --primary-foreground: #ffffff;
+  --secondary: #171c28;
+  --secondary-foreground: #e9edfa;
+  --muted: #151a25;
+  --muted-foreground: #929bad;
+  --accent: #202a4a;
+  --accent-foreground: #f4f7ff;
+  --destructive: #f05d6c;
+  --border: #252b38;
+  --input: #202633;
+  --ring: #6d8aff;
+  --sidebar: #0b0e14;
+  --sidebar-foreground: #f4f7ff;
+  --sidebar-primary: #5b7cff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #151a25;
+  --sidebar-accent-foreground: #f4f7ff;
+  --sidebar-border: #202633;
+  --sidebar-ring: #6d8aff;
 }
 
 @layer base {
@@ -114,7 +112,7 @@
     @apply border-border outline-ring/50;
   }
   html {
-    font-family: "Arial Narrow", "Roboto Condensed", Inter, ui-sans-serif, system-ui, sans-serif;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
@@ -122,12 +120,11 @@
     @apply bg-background text-foreground;
     min-width: 320px;
     letter-spacing: -0.012em;
-    background-image: linear-gradient(90deg, color-mix(in srgb, var(--border) 22%, transparent) 1px, transparent 1px);
-    background-size: 25vw 100%;
+    background: var(--background);
   }
   h1, h2, h3 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-weight: 500;
+    font-family: inherit;
+    font-weight: 650;
   }
   ::selection {
     background: color-mix(in srgb, var(--primary) 18%, transparent);
@@ -149,20 +146,18 @@
 
 :root .bg-card,
 :root [class*="bg-card"] {
-  box-shadow: 0 1px 2px rgba(20, 24, 18, 0.025);
-}
-
-.dark .bg-card,
-.dark [class*="bg-card"] {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.16);
 }
 
 .premium-surface {
-  background: var(--card);
-  border: 1px solid var(--foreground);
-  box-shadow: 10px 10px 0 color-mix(in srgb, var(--foreground) 12%, transparent);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
+.messenger-shell {
+  background: var(--background);
+}
 .messenger-shell aside {
   background: var(--sidebar) !important;
   color: var(--sidebar-foreground);
@@ -174,23 +169,17 @@
   color: var(--sidebar-foreground);
 }
 .messenger-shell aside h1 {
-  font-size: 2rem;
-  font-style: italic;
+  font-size: 1.25rem;
+  font-style: normal;
+  letter-spacing: -0.03em;
 }
 .messenger-shell main > div {
-  background-image: linear-gradient(color-mix(in srgb, var(--border) 25%, transparent) 1px, transparent 1px);
-  background-size: 100% 4rem;
+  background: linear-gradient(180deg, rgba(91, 124, 255, 0.035), transparent 28%);
 }
 .messenger-shell header {
-  min-height: 4.75rem;
-}
-.messenger-shell [class*="rounded-full"] {
-  border-radius: 0.35rem;
-}
-.messenger-shell [class*="rounded-2xl"],
-.messenger-shell [class*="rounded-xl"],
-.messenger-shell [class*="rounded-3xl"] {
-  border-radius: 0.45rem;
+  min-height: 4.25rem;
+  background: color-mix(in srgb, var(--background) 88%, transparent);
+  backdrop-filter: blur(16px);
 }
 .messenger-shell button:hover {
   transform: translateY(-1px);
@@ -198,9 +187,13 @@
 .messenger-shell aside button:hover {
   background-color: var(--sidebar-accent);
 }
+.messenger-shell [class*="shadow-lg"],
+.messenger-shell [class*="shadow-xl"] {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
+}
 @media (max-width: 767px) {
   .messenger-shell aside { width: 100%; }
-  .messenger-shell header { min-height: 4.25rem; }
+  .messenger-shell header { min-height: 4rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
