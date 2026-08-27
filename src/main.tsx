@@ -5,6 +5,7 @@ import React, { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { RequireAuth } from "@/components/RequireAuth";
+import { ThemeProvider } from "@/theme/ThemeProvider";
 import "./index.css";
 
 const Landing = lazy(() => import("./pages/Landing.tsx"));
@@ -61,19 +62,21 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RootErrorBoundary>
-      <ConvexAuthProvider client={convex}>
-        <BrowserRouter>
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
-              <Route path="/" element={<Landing />} />
-              <Route path="/auth" element={<AuthPage redirectAfterAuth="/messenger" />} />
-              <Route path="/messenger" element={<RequireAuth><Messenger /></RequireAuth>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <Toaster />
-      </ConvexAuthProvider>
+      <ThemeProvider>
+        <ConvexAuthProvider client={convex}>
+          <BrowserRouter>
+            <Suspense fallback={<RouteLoading />}>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/auth" element={<AuthPage redirectAfterAuth="/messenger" />} />
+                <Route path="/messenger" element={<RequireAuth><Messenger /></RequireAuth>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+          <Toaster />
+        </ConvexAuthProvider>
+      </ThemeProvider>
     </RootErrorBoundary>
   </StrictMode>,
 );

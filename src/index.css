@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./styles/digital-precision.css";
+@import "./styles/messenger.css";
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -41,40 +42,41 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-:root {
-  color-scheme: dark;
+:root,
+.light {
+  color-scheme: light;
   --radius: 0.75rem;
-  --background: #080a0f;
-  --foreground: #f4f7ff;
-  --card: #10131b;
-  --card-foreground: #f4f7ff;
-  --popover: #141824;
-  --popover-foreground: #f4f7ff;
-  --primary: #5b7cff;
+  --background: #f5f7fb;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+  --popover: #ffffff;
+  --popover-foreground: #111827;
+  --primary: #315efb;
   --primary-foreground: #ffffff;
-  --secondary: #171c28;
-  --secondary-foreground: #e9edfa;
-  --muted: #151a25;
-  --muted-foreground: #929bad;
-  --accent: #202a4a;
-  --accent-foreground: #f4f7ff;
-  --destructive: #f05d6c;
-  --border: #252b38;
-  --input: #202633;
-  --ring: #6d8aff;
-  --chart-1: #5b7cff;
-  --chart-2: #42c7b9;
-  --chart-3: #9b7cff;
-  --chart-4: #5aa8ff;
-  --chart-5: #d06cff;
-  --sidebar: #0b0e14;
-  --sidebar-foreground: #f4f7ff;
-  --sidebar-primary: #5b7cff;
+  --secondary: #edf1f8;
+  --secondary-foreground: #1f2937;
+  --muted: #e9edf5;
+  --muted-foreground: #667085;
+  --accent: #e5ebff;
+  --accent-foreground: #173ea8;
+  --destructive: #dc3f50;
+  --border: #d9dfeb;
+  --input: #d9dfeb;
+  --ring: #315efb;
+  --chart-1: #315efb;
+  --chart-2: #0f9f91;
+  --chart-3: #7657e8;
+  --chart-4: #2584d8;
+  --chart-5: #b43bc4;
+  --sidebar: #fbfcfe;
+  --sidebar-foreground: #111827;
+  --sidebar-primary: #315efb;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #151a25;
-  --sidebar-accent-foreground: #f4f7ff;
-  --sidebar-border: #202633;
-  --sidebar-ring: #6d8aff;
+  --sidebar-accent: #edf1f8;
+  --sidebar-accent-foreground: #111827;
+  --sidebar-border: #dfe4ee;
+  --sidebar-ring: #315efb;
 }
 
 .dark {
@@ -155,46 +157,6 @@
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
-.messenger-shell {
-  background: var(--background);
-}
-.messenger-shell aside {
-  background: var(--sidebar) !important;
-  color: var(--sidebar-foreground);
-  border-color: var(--sidebar-border) !important;
-}
-.messenger-shell aside input,
-.messenger-shell aside textarea {
-  background: var(--sidebar-accent) !important;
-  color: var(--sidebar-foreground);
-}
-.messenger-shell aside h1 {
-  font-size: 1.25rem;
-  font-style: normal;
-  letter-spacing: -0.03em;
-}
-.messenger-shell main > div {
-  background: linear-gradient(180deg, rgba(91, 124, 255, 0.035), transparent 28%);
-}
-.messenger-shell header {
-  min-height: 4.25rem;
-  background: color-mix(in srgb, var(--background) 88%, transparent);
-  backdrop-filter: blur(16px);
-}
-.messenger-shell button:hover {
-  transform: translateY(-1px);
-}
-.messenger-shell aside button:hover {
-  background-color: var(--sidebar-accent);
-}
-.messenger-shell [class*="shadow-lg"],
-.messenger-shell [class*="shadow-xl"] {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.32);
-}
-@media (max-width: 767px) {
-  .messenger-shell aside { width: 100%; }
-  .messenger-shell header { min-height: 4rem; }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

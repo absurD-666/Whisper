@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/theme/ThemeProvider";
 
 type View = "chats" | "contacts" | "settings" | "chat";
 
@@ -30,16 +31,6 @@ const EMOJI_LIST = [
   "🤝","🙏","💪","👀","🔥","⭐","🌟","💫","🎉","🎊",
   "💯","✅","❌","⚡","💎","🌈","☀️","🌙","⛅","🌸",
 ];
-
-// ─── Theme ───
-function useTheme() {
-  const [dark, setDark] = useState(() => localStorage.getItem("theme") === "dark");
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-    localStorage.setItem("theme", dark ? "dark" : "light");
-  }, [dark]);
-  return { dark, toggle: () => setDark((d) => !d) };
-}
 
 // ─── Sound ───
 function playNotifSound() {
@@ -99,7 +90,7 @@ function ImagePreview({ url, onClose }: { url: string; onClose: () => void }) {
 }
 
 // ─── Image Message ───
-function ImageMessage({ storageId }: { storageId: string }) {
+function ImageMessage({ storageId, onPreview }: { storageId: string; onPreview?: (url: string) => void }) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const fetchedUrl = useQuery(api.chat.getStorageUrl, { storageId });
@@ -110,7 +101,7 @@ function ImageMessage({ storageId }: { storageId: string }) {
 
   if (loading) return <div className="w-48 h-32 bg-primary/10 rounded-xl animate-pulse" />;
   if (!url) return <div className="w-48 h-32 bg-muted rounded-xl flex items-center justify-center text-xs text-muted-foreground">Нет файла</div>;
-  return <img src={url} alt="Фото" className="max-w-[260px] max-h-[300px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" />;
+  return <img src={url} alt="Фото" className="max-w-[260px] max-h-[300px] rounded-xl object-cover cursor-pointer hover:opacity-90 transition-opacity" loading="lazy" onClick={(event) => { event.stopPropagation(); onPreview?.(url); }} />;
 }
 
 // ─── Voice Recorder ───
@@ -288,12 +279,22 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
   const handleSend = async () => { const text = input.trim(); if (!text) return; try { await sendMessage({ conversationId: conversationId as any, body: text, type: "text" }); setInput(""); clearTypingMutation().catch(() => {}); textareaRef.current?.focus(); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} };
   const handleEdit = async () => { if (!editingMsgId || !editingMsgBody.trim()) return; await editMessageMutation({ messageId: editingMsgId as any, body: editingMsgBody.trim() }).catch(() => {}); setEditingMsgId(null); setEditingMsgBody(""); };
   const handleForward = async (toConvoId: string) => { if (!showForwardId) return; await forwardMessageMutation({ messageId: showForwardId as any, toConversationId: toConvoId as any }).catch(() => {}); setShowForwardId(null); };
-  const handlePin = async (messageId: string) => { await pinMessageMutation({ conversationId: conversationId as any, messageId: messageId as any }).catch(() => {}); setActiveMenuId(null); };
+  const handlePin = async (messageId: string) => {
+    if (pinnedMsg?._id === messageId) await unpinMessageMutation({ conversationId: conversationId as any }).catch(() => {});
+    else await pinMessageMutation({ conversationId: conversationId as any, messageId: messageId as any }).catch(() => {});
+    setActiveMenuId(null);
+  };
   const handleSendVoice = async (blob: Blob, duration: number) => { try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": blob.type }, body: blob }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "voice", file: { type: "audio", storageId, name: "voice.webm" }, duration }); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} };
   const handleSendImage = async (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (!file) return; setUploadingImg(true); try { const uploadUrl = await generateUploadUrl(); const result = await fetch(uploadUrl, { method: "POST", headers: { "Content-Type": file.type }, body: file }); const { storageId } = await result.json(); await sendMessage({ conversationId: conversationId as any, body: "", type: "image", file: { type: "image", storageId, name: file.name } }); requestAnimationFrame(() => { messagesEndRef.current?.scrollIntoView({ behavior: "auto" }); requestAnimationFrame(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })); }); } catch {} finally { setUploadingImg(false); if (imageInputRef.current) imageInputRef.current.value = ""; } };
   const handleDeleteMessage = async (messageId: string, forEveryone: boolean) => { try { await deleteMessageMutation({ messageId: messageId as any, forEveryone }); setDeleteConfirmId(null); setActiveMenuId(null); setContextMenuMsgId(null); } catch {} };
   const handleBulkDelete = async (forEveryone: boolean) => { for (const id of bulkDeleteIds) { await deleteMessageMutation({ messageId: id as any, forEveryone }).catch(() => {}); } setBulkDeleteOpen(false); setBulkDeleteIds([]); };
-  const handleContextMenu = (e: React.MouseEvent, msgId: string) => { e.preventDefault(); setContextMenuPos({ x: e.clientX, y: e.clientY }); setContextMenuMsgId(msgId); };
+  const handleContextMenu = (e: React.MouseEvent, msgId: string) => {
+    e.preventDefault();
+    const menuWidth = 184;
+    const menuHeight = 260;
+    setContextMenuPos({ x: Math.min(e.clientX, window.innerWidth - menuWidth - 12), y: Math.min(e.clientY, window.innerHeight - menuHeight - 12) });
+    setContextMenuMsgId(msgId);
+  };
   const closeContextMenus = () => { setActiveMenuId(null); setContextMenuMsgId(null); setContextMenuPos(null); };
 
 
@@ -301,20 +302,20 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
   if (!convo) return <div className="flex-1 flex items-center justify-center"><div className="w-2 h-2 rounded-full bg-primary/20 animate-pulse" /></div>;
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background">
+    <section className="chat-view">
       {previewImage && <ImagePreview url={previewImage} onClose={() => setPreviewImage(null)} />}
       {pinnedMsg && (<div className="px-4 py-2 bg-primary/5 border-b border-border/20 flex items-center gap-2 shrink-0 cursor-pointer" onClick={() => { const el = document.getElementById(`msg-${pinnedMsg._id}`); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}><Pin className="w-3.5 h-3.5 text-primary shrink-0" /><div className="flex-1 min-w-0"><p className="text-[10px] text-primary font-medium">{pinnedMsg.senderName}</p><p className="text-xs text-muted-foreground truncate">{pinnedMsg.body}</p></div><button onClick={(e) => { e.stopPropagation(); unpinMessageMutation({ conversationId: conversationId as any }); }} className="p-1 text-muted-foreground hover:text-foreground"><PinOff className="w-3.5 h-3.5" /></button></div>)}
-      <header className="flex items-center gap-3 px-4 sm:px-6 py-3.5 bg-card border-b border-border/70 shrink-0">
+      <header className="chat-header">
         <button onClick={onBack} className="md:hidden p-1 text-muted-foreground hover:text-foreground"><ArrowLeft className="w-5 h-5" /></button>
         {convo.isGroup ? (<div className="flex items-center gap-3 flex-1 min-w-0"><div className="w-10 h-10 rounded-full bg-primary/15 text-primary font-semibold flex items-center justify-center text-sm"><Users className="w-4 h-4" /></div><div><p className="text-sm font-semibold">{convo.name}</p><p className="text-[11px] text-muted-foreground">{convo.participants?.length} участников</p></div></div>) : convo.otherUser && (<><div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer" onClick={() => convo.otherUser?._id && onViewProfile(convo.otherUser._id as string)}><Avatar nickname={convo.otherUser.nickname ?? "?"} online={convo.otherUser.online} size="sm" avatarStorageId={convo.otherUser.avatar} /><div><p className="text-sm font-semibold hover:underline">{convo.otherUser.nickname}</p><p className="text-[11px] text-muted-foreground">{convo.otherUser.online ? <span className="text-emerald-500">в сети</span> : "не в сети"}</p></div></div></>)}
       </header>
-      <div className="flex-1 overflow-y-auto px-4 py-6" onClick={(e) => { const el = e.target as HTMLElement; if (!el.closest('[data-menu]')) closeContextMenus(); }}>
-        <div className="max-w-2xl mx-auto space-y-1.5">
+      <div className="chat-timeline" onClick={(e) => { const el = e.target as HTMLElement; if (!el.closest('[data-menu]')) closeContextMenus(); }}>
+        <div className="chat-timeline__inner">
           {messages && messages.length === 0 && <div className="text-center py-24"><div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4"><MessageCircle className="w-7 h-7 text-primary/40" /></div><p className="text-sm font-medium text-foreground/60">Начните диалог</p></div>}
           {messages?.map((msg) => {
             const isMe = msg.senderId === currentUserId;
             return (
-              <div key={msg._id} id={`msg-${msg._id}`} className={`group relative flex ${isMe ? "justify-end" : "justify-start"}`} onContextMenu={(e) => handleContextMenu(e, msg._id)}>
+              <div key={msg._id} id={`msg-${msg._id}`} className={`message-row group ${isMe ? "message-row--mine" : ""}`} onContextMenu={(e) => handleContextMenu(e, msg._id)}>
                 <div className={`absolute top-1 ${isMe ? "-left-8" : "-right-8"} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5`}><button onClick={() => { setActiveMenuId(activeMenuId === msg._id ? null : msg._id); }} className="p-1 text-muted-foreground hover:text-foreground rounded"><MoreHorizontal className="w-3.5 h-3.5" /></button></div>
                 {activeMenuId === msg._id && (
                   <div data-menu className={`absolute top-8 ${isMe ? "right-0" : "left-0"} z-30 bg-popover border border-border rounded-xl shadow-lg py-1 w-44`}>
@@ -326,10 +327,10 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
                     <button onClick={() => { setDeleteConfirmId(msg._id); setDeleteForEveryone(false); setActiveMenuId(null); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2 text-red-500"><Trash2 className="w-3.5 h-3.5" />Удалить</button>
                   </div>
                 )}
-                <div className={`max-w-[75%] px-3.5 py-2 rounded-2xl text-sm transition-all ${selectedMsgIds.has(msg._id) ? "ring-2 ring-primary/50 bg-primary/10" : ""} ${isMe ? "bg-primary text-primary-foreground rounded-br-md" : "bg-muted rounded-bl-md"}`} onClick={() => { if (selectedMsgIds.size > 0 || (selectedMsgIds.size === 0 && false)) { setSelectedMsgIds(prev => { const next = new Set(prev); next.has(msg._id) ? next.delete(msg._id) : next.add(msg._id); return next; }); } }}>
+                <div className={`message-bubble text-sm transition-all ${selectedMsgIds.has(msg._id) ? "ring-2 ring-primary/50" : ""}`} onClick={() => { if (selectedMsgIds.size > 0) { setSelectedMsgIds(prev => { const next = new Set(prev); next.has(msg._id) ? next.delete(msg._id) : next.add(msg._id); return next; }); } }}>
                   {msg.forwardedFrom && <p className="text-[10px] opacity-60 mb-1 flex items-center gap-1"><Forward className="w-3 h-3" />Переслано от {msg.forwardedFrom.senderName}</p>}
                   {msg.replyToId && <div className="text-[10px] opacity-50 mb-1 border-l-2 border-current/30 pl-2">Ответ</div>}
-                  {msg.type === "image" && msg.file && <div className="mb-1 cursor-pointer" onClick={() => { /* handled below */ }}><ImageMessage storageId={msg.file.storageId} /></div>}
+                  {msg.type === "image" && msg.file && <div className="mb-1 cursor-pointer"><ImageMessage storageId={msg.file.storageId} onPreview={setPreviewImage} /></div>}
                   {msg.type === "voice" && msg.file && <AudioMessage storageId={msg.file.storageId} isMe={isMe} />}
                   {msg.type === "text" && editingMsgId === msg._id ? (
                     <div className="flex flex-col gap-1">
@@ -359,7 +360,7 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
         <div data-menu style={{ position: "fixed", left: contextMenuPos.x, top: contextMenuPos.y, zIndex: 60 }} className="bg-popover border border-border rounded-xl shadow-lg py-1 w-44">
           <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setEditingMsgId(contextMenuMsgId); setEditingMsgBody(messages?.find(m => m._id === contextMenuMsgId)?.body ?? ""); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Edit3 className="w-3.5 h-3.5" />Редактировать</button>
           <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setShowForwardId(contextMenuMsgId); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Forward className="w-3.5 h-3.5" />Переслать</button>
-          <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); pinMessageMutation({ conversationId: conversationId as any, messageId: contextMenuMsgId as any }).catch(() => {}); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Pin className="w-3.5 h-3.5" />{pinnedMsg?._id === contextMenuMsgId ? "Открепить" : "Закрепить"}</button>
+          <button onClick={() => { const id = contextMenuMsgId; setContextMenuMsgId(null); setContextMenuPos(null); handlePin(id); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Pin className="w-3.5 h-3.5" />{pinnedMsg?._id === contextMenuMsgId ? "Открепить" : "Закрепить"}</button>
           <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setSelectedMsgIds(prev => { const next = new Set(prev); next.has(contextMenuMsgId) ? next.delete(contextMenuMsgId) : next.add(contextMenuMsgId); return next; }); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2"><Check className="w-3.5 h-3.5" />Выделить</button>
           <div className="border-t border-border/30 my-1" />
           <button onClick={() => { setContextMenuMsgId(null); setContextMenuPos(null); setDeleteConfirmId(contextMenuMsgId); setDeleteForEveryone(false); }} className="w-full px-3 py-2 text-xs text-left hover:bg-muted flex items-center gap-2 text-red-500"><Trash2 className="w-3.5 h-3.5" />Удалить</button>
@@ -410,8 +411,8 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
       )}
 
       {/* Input Area */}
-      <div className="border-t border-border/70 bg-card px-3 sm:px-5 py-3.5 shrink-0">
-        <div className="max-w-2xl mx-auto flex items-end gap-2">
+      <div className="chat-composer">
+        <div className="chat-composer__inner">
           <input type="file" ref={imageInputRef} accept="image/*" className="hidden" onChange={handleSendImage} />
           <Button size="icon" variant="ghost" className="shrink-0 text-muted-foreground hover:text-primary" onClick={() => imageInputRef.current?.click()} disabled={uploadingImg}>
             {uploadingImg ? <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <ImagePlus className="w-5 h-5" />}
@@ -425,7 +426,7 @@ function ChatView({ conversationId, onBack, onViewProfile }: { conversationId: s
           <Button size="icon" className="shrink-0 rounded-full bg-primary" onClick={handleSend} disabled={!input.trim()}><Send className="w-4 h-4" /></Button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -439,7 +440,7 @@ export default function Messenger() {
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const theme = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   const conversations = useQuery(api.conversations.list);
   const contacts = useQuery(api.contacts.list);
@@ -557,40 +558,41 @@ export default function Messenger() {
         {showCreateGroup && contacts && <CreateGroupDialog contacts={contacts} onCreate={handleCreateGroup} onClose={() => setShowCreateGroup(false)} />}
       </AnimatePresence>
 
-      <div className="flex flex-1 h-full overflow-hidden">
+      <div className="messenger-layout">
         {/* Sidebar */}
-        <aside className={`${activeChat && view === "chat" ? "hidden md:flex" : "flex"} w-full md:w-80 lg:w-96 border-r border-border/70 flex-col bg-card shrink-0 h-full`}>
+        <aside className="messenger-rail" data-hidden={activeChat && view === "chat"}>
           {/* Sidebar Header */}
-          <div className="px-4 py-3 border-b border-border/30 shrink-0">
-            <div className="flex items-center justify-between mb-3">
-              <h1 className="text-lg font-bold tracking-tight">Whisper</h1>
-              <div className="flex items-center gap-1">
-                <button onClick={theme.toggle} className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-colors" title={theme.dark ? "Светлая тема" : "Тёмная тема"}>
-                  {theme.dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <div className="messenger-rail__header">
+            <div className="messenger-brand">
+              <span className="messenger-brand__mark"><MessageCircle className="w-4 h-4" /></span>
+              <div><p className="messenger-brand__eyebrow">Private workspace</p><h1 className="messenger-brand__name">Whisper</h1></div>
+              <div className="messenger-actions">
+                <button onClick={toggleTheme} className="messenger-icon-button" title={resolvedTheme === "dark" ? "Светлая тема" : "Тёмная тема"} aria-label="Переключить тему">
+                  {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                 </button>
                 <button onClick={() => { setShowSettings(!showSettings); setView("settings"); }} className="p-2 text-muted-foreground hover:text-foreground rounded-lg hover:bg-muted/50 transition-colors"><Settings className="w-4 h-4" /></button>
                 <button onClick={signOut} className="p-2 text-muted-foreground hover:text-red-500 rounded-lg hover:bg-muted/50 transition-colors"><LogOut className="w-4 h-4" /></button>
               </div>
             </div>
             {!showSettings && (
-              <div className="relative">
+              <div className="messenger-search">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input value={view === "chats" ? searchQuery : ""} onChange={(e) => { setSearchQuery(e.target.value); if (searchQuery.length >= 2) setView("chats"); }} onFocus={() => { if (searchQuery.length >= 2) setView("chats"); }} placeholder="Найти пользователя..." className="w-full bg-muted/50 rounded-xl pl-9 pr-3 py-2 text-sm outline-none border border-transparent focus:border-border/40 transition-colors" />
+                <input value={searchQuery} onChange={(e) => { const next = e.target.value; setSearchQuery(next); if (next.length >= 2) setView("chats"); }} onFocus={() => { if (searchQuery.length >= 2) setView("chats"); }} placeholder="Найти пользователя..." className="w-full bg-muted/50 rounded-xl pl-9 pr-3 py-2 text-sm outline-none border border-transparent focus:border-border/40 transition-colors" />
               </div>
             )}
           </div>
 
           {/* Nav Tabs */}
           {!showSettings && (
-            <div className="flex border-b border-border/30 shrink-0">
+            <nav className="messenger-tabs" aria-label="Разделы мессенджера">
               {([["chats", "Чаты", MessageCircle], ["contacts", "Контакты", Users]] as [View, string, any][]).map(([v, label, Icon]) => (
-                <button key={v} onClick={() => setView(v)} className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors ${view === v ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"}`}><Icon className="w-3.5 h-3.5" />{label}</button>
+                <button key={v} onClick={() => setView(v)} className="messenger-tab" data-active={view === v}><Icon className="w-3.5 h-3.5" />{label}</button>
               ))}
-            </div>
+            </nav>
           )}
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="messenger-list">
             {showSettings ? (
               /* Settings */
               <div className="p-4 space-y-4">
@@ -664,12 +666,12 @@ export default function Messenger() {
         </aside>
 
         {/* Main Content */}
-        <main className={`${activeChat && view === "chat" ? "flex" : "hidden md:flex"} flex-1 flex-col h-full min-w-0`}>
+        <main className="messenger-workspace" data-hidden={!(activeChat && view === "chat")}>
           {activeChat && view === "chat" ? (
             <ChatView conversationId={activeChat} onBack={() => { setActiveChat(null); setView("chats"); }} onViewProfile={(id) => setProfileUserId(id)} />
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-background">
-              <div className="text-center">
+            <div className="messenger-welcome">
+              <div className="messenger-welcome__card">
                 <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
                   <MessageCircle className="w-10 h-10 text-primary/30" />
                 </div>
